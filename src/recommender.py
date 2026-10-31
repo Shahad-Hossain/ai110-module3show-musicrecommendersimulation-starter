@@ -3,10 +3,7 @@ from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, asdict
 
 # Algorithm Recipe (max 5.0 points); see "How The System Works" in README.md
-ENERGY_POINTS = 2.0
-MOOD_POINTS = 1.5
-GENRE_POINTS = 1.0
-ACOUSTIC_POINTS = 0.5
+DEFAULT_WEIGHTS = {"energy": 2.0, "mood": 1.5, "genre": 1.0, "acoustic": 0.5}
 
 @dataclass
 class Song:
@@ -78,21 +75,22 @@ def load_songs(csv_path: str) -> List[Dict]:
             songs.append(row)
     return songs
 
-def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """Scores one song against user prefs; returns (score out of 5.0, list of reasons)."""
+def score_song(user_prefs: Dict, song: Dict, weights: Optional[Dict] = None) -> Tuple[float, List[str]]:
+    """Scores one song against user prefs; returns (score, list of reasons). Max score = sum of weights."""
+    w = weights or DEFAULT_WEIGHTS
     score = 0.0
     reasons = []
 
     if song["genre"] == user_prefs.get("genre"):
-        score += GENRE_POINTS
-        reasons.append(f"genre match (+{GENRE_POINTS:.1f})")
+        score += w["genre"]
+        reasons.append(f"genre match (+{w['genre']:.1f})")
 
     if song["mood"] == user_prefs.get("mood"):
-        score += MOOD_POINTS
-        reasons.append(f"mood match (+{MOOD_POINTS:.1f})")
+        score += w["mood"]
+        reasons.append(f"mood match (+{w['mood']:.1f})")
 
     if "energy" in user_prefs:
-        points = ENERGY_POINTS * (1 - abs(song["energy"] - user_prefs["energy"]))
+        points = w["energy"] * (1 - abs(song["energy"] - user_prefs["energy"]))
         score += points
         reasons.append(
             f"energy {song['energy']:.2f} vs target {user_prefs['energy']:.2f} (+{points:.2f})"
@@ -100,16 +98,16 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
 
     if "likes_acoustic" in user_prefs:
         fit = song["acousticness"] if user_prefs["likes_acoustic"] else 1 - song["acousticness"]
-        points = ACOUSTIC_POINTS * fit
+        points = w["acoustic"] * fit
         score += points
         reasons.append(f"acoustic fit (+{points:.2f})")
 
     return score, reasons
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5, weights: Optional[Dict] = None) -> List[Tuple[Dict, float, str]]:
     """Scores every song and returns the top k as (song, score, explanation), best first."""
     scored = []
     for song in songs:
-        score, reasons = score_song(user_prefs, song)
+        score, reasons = score_song(user_prefs, song, weights)
         scored.append((song, score, ", ".join(reasons)))
     return sorted(scored, key=lambda item: item[1], reverse=True)[:k]

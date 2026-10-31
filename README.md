@@ -156,13 +156,259 @@ Sunrise City wins because it matches on genre, mood and energy. Gym Hero (an int
 
 ---
 
+## Stress Test: Diverse Profiles
+
+Output of `python -m src.main` (all six profiles; run one with `--profile NAME`). The first three are everyday users, the last three are adversarial profiles designed to trick the scoring.
+
+### Happy Pop (normal)
+
+```
+Profile: pop_happy {'genre': 'pop', 'mood': 'happy', 'energy': 0.8, 'likes_acoustic': False}
+Top recommendations:
+
+1. Sunrise City by Neon Echo [pop/happy]
+   Score: 4.87 / 5.00
+   - genre match (+1.0)
+   - mood match (+1.5)
+   - energy 0.82 vs target 0.80 (+1.96)
+   - acoustic fit (+0.41)
+
+2. Rooftop Lights by Indigo Parade [indie pop/happy]
+   Score: 3.75 / 5.00
+   - mood match (+1.5)
+   - energy 0.76 vs target 0.80 (+1.92)
+   - acoustic fit (+0.33)
+
+3. Gym Hero by Max Pulse [pop/intense]
+   Score: 3.22 / 5.00
+   - genre match (+1.0)
+   - energy 0.93 vs target 0.80 (+1.74)
+   - acoustic fit (+0.47)
+
+4. Heartbeat Replay by Neon Echo [pop/romantic]
+   Score: 3.05 / 5.00
+   - genre match (+1.0)
+   - energy 0.65 vs target 0.80 (+1.70)
+   - acoustic fit (+0.35)
+
+5. Dandelion Fields by Paper Lanterns [folk/happy]
+   Score: 3.02 / 5.00
+   - mood match (+1.5)
+   - energy 0.52 vs target 0.80 (+1.44)
+   - acoustic fit (+0.08)
+```
+
+### Chill Lofi (normal)
+
+```
+Profile: chill_lofi {'genre': 'lofi', 'mood': 'chill', 'energy': 0.38, 'likes_acoustic': True}
+Top recommendations:
+
+1. Library Rain by Paper Lanterns [lofi/chill]
+   Score: 4.87 / 5.00
+   - genre match (+1.0)
+   - mood match (+1.5)
+   - energy 0.35 vs target 0.38 (+1.94)
+   - acoustic fit (+0.43)
+
+2. Midnight Coding by LoRoom [lofi/chill]
+   Score: 4.78 / 5.00
+   - genre match (+1.0)
+   - mood match (+1.5)
+   - energy 0.42 vs target 0.38 (+1.92)
+   - acoustic fit (+0.35)
+
+3. Spacewalk Thoughts by Orbit Bloom [ambient/chill]
+   Score: 3.76 / 5.00
+   - mood match (+1.5)
+   - energy 0.28 vs target 0.38 (+1.80)
+   - acoustic fit (+0.46)
+
+4. Drift Cloud by Orbit Bloom [ambient/chill]
+   Score: 3.65 / 5.00
+   - mood match (+1.5)
+   - energy 0.22 vs target 0.38 (+1.68)
+   - acoustic fit (+0.47)
+
+5. Focus Flow by LoRoom [lofi/focused]
+   Score: 3.35 / 5.00
+   - genre match (+1.0)
+   - energy 0.40 vs target 0.38 (+1.96)
+   - acoustic fit (+0.39)
+```
+
+### Deep Intense Rock (normal)
+
+```
+Profile: intense_rock {'genre': 'rock', 'mood': 'intense', 'energy': 0.92, 'likes_acoustic': False}
+Top recommendations:
+
+1. Storm Runner by Voltline [rock/intense]
+   Score: 4.93 / 5.00
+   - genre match (+1.0)
+   - mood match (+1.5)
+   - energy 0.91 vs target 0.92 (+1.98)
+   - acoustic fit (+0.45)
+
+2. Gym Hero by Max Pulse [pop/intense]
+   Score: 3.96 / 5.00
+   - mood match (+1.5)
+   - energy 0.93 vs target 0.92 (+1.98)
+   - acoustic fit (+0.47)
+
+3. Crimson Highway by Iron Meadow [rock/angry]
+   Score: 3.38 / 5.00
+   - genre match (+1.0)
+   - energy 0.88 vs target 0.92 (+1.92)
+   - acoustic fit (+0.46)
+
+4. Pulse Machine by Max Pulse [edm/energetic]
+   Score: 2.41 / 5.00
+   - energy 0.96 vs target 0.92 (+1.92)
+   - acoustic fit (+0.48)
+
+5. Sunrise City by Neon Echo [pop/happy]
+   Score: 2.21 / 5.00
+   - energy 0.82 vs target 0.92 (+1.80)
+   - acoustic fit (+0.41)
+```
+
+### Conflicted: sad mood but very high energy (adversarial)
+
+```
+Profile: conflicted_sad_but_loud {'genre': 'folk', 'mood': 'melancholy', 'energy': 0.9, 'likes_acoustic': True}
+Top recommendations:
+
+1. Empty Porch Light by Hollow Pines [folk/melancholy]
+   Score: 3.75 / 5.00
+   - genre match (+1.0)
+   - mood match (+1.5)
+   - energy 0.30 vs target 0.90 (+0.80)
+   - acoustic fit (+0.45)
+
+2. Broken Signal by Static Lilies [indie pop/melancholy]
+   Score: 3.00 / 5.00
+   - mood match (+1.5)
+   - energy 0.55 vs target 0.90 (+1.30)
+   - acoustic fit (+0.20)
+
+3. Dandelion Fields by Paper Lanterns [folk/happy]
+   Score: 2.67 / 5.00
+   - genre match (+1.0)
+   - energy 0.52 vs target 0.90 (+1.24)
+   - acoustic fit (+0.42)
+
+4. Storm Runner by Voltline [rock/intense]
+   Score: 2.03 / 5.00
+   - energy 0.91 vs target 0.90 (+1.98)
+   - acoustic fit (+0.05)
+
+5. Crimson Highway by Iron Meadow [rock/angry]
+   Score: 2.00 / 5.00
+   - energy 0.88 vs target 0.90 (+1.96)
+   - acoustic fit (+0.04)
+```
+
+### Mellow Rock: rock fan who wants quiet, chill songs (adversarial)
+
+```
+Profile: mellow_rock {'genre': 'rock', 'mood': 'chill', 'energy': 0.4, 'likes_acoustic': True}
+Top recommendations:
+
+1. Library Rain by Paper Lanterns [lofi/chill]
+   Score: 3.83 / 5.00
+   - mood match (+1.5)
+   - energy 0.35 vs target 0.40 (+1.90)
+   - acoustic fit (+0.43)
+
+2. Midnight Coding by LoRoom [lofi/chill]
+   Score: 3.81 / 5.00
+   - mood match (+1.5)
+   - energy 0.42 vs target 0.40 (+1.96)
+   - acoustic fit (+0.35)
+
+3. Spacewalk Thoughts by Orbit Bloom [ambient/chill]
+   Score: 3.72 / 5.00
+   - mood match (+1.5)
+   - energy 0.28 vs target 0.40 (+1.76)
+   - acoustic fit (+0.46)
+
+4. Drift Cloud by Orbit Bloom [ambient/chill]
+   Score: 3.61 / 5.00
+   - mood match (+1.5)
+   - energy 0.22 vs target 0.40 (+1.64)
+   - acoustic fit (+0.47)
+
+5. Focus Flow by LoRoom [lofi/focused]
+   Score: 2.39 / 5.00
+   - energy 0.40 vs target 0.40 (+2.00)
+   - acoustic fit (+0.39)
+```
+
+### Unknown tastes: genre and mood not in the catalog (adversarial)
+
+```
+Profile: unknown_tastes {'genre': 'classical', 'mood': 'sad', 'energy': 0.5, 'likes_acoustic': False}
+Top recommendations:
+
+1. Broken Signal by Static Lilies [indie pop/melancholy]
+   Score: 2.20 / 5.00
+   - energy 0.55 vs target 0.50 (+1.90)
+   - acoustic fit (+0.30)
+
+2. Velvet Evenings by Slow Stereo [jazz/romantic]
+   Score: 2.05 / 5.00
+   - energy 0.48 vs target 0.50 (+1.96)
+   - acoustic fit (+0.09)
+
+3. Heartbeat Replay by Neon Echo [pop/romantic]
+   Score: 2.05 / 5.00
+   - energy 0.65 vs target 0.50 (+1.70)
+   - acoustic fit (+0.35)
+
+4. Dandelion Fields by Paper Lanterns [folk/happy]
+   Score: 2.04 / 5.00
+   - energy 0.52 vs target 0.50 (+1.96)
+   - acoustic fit (+0.08)
+
+5. Golden Hour Drive by Neon Echo [synthwave/nostalgic]
+   Score: 2.01 / 5.00
+   - energy 0.68 vs target 0.50 (+1.64)
+   - acoustic fit (+0.38)
+```
+
+---
+
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+Both experiments are built into the CLI: `python -m src.main --experiment weight_shift` and `python -m src.main --experiment no_mood`. The maximum score changes with the weights (6.5 and 3.5 instead of 5.0), but every score still stays between 0 and that maximum, so the math remains valid.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+### Experiment 1: weight shift (energy x2, genre x0.5)
+
+Weights became energy 4.0, mood 1.5, genre 0.5, acoustic 0.5.
+
+| Profile | Baseline top 5 | After weight shift |
+|---|---|---|
+| Happy Pop | Sunrise City, Rooftop Lights, Gym Hero, Heartbeat Replay, Dandelion Fields | Sunrise City, Rooftop Lights, Gym Hero, **Dandelion Fields, Heartbeat Replay** (4th and 5th swap) |
+| Chill Lofi | Library Rain, Midnight Coding, Spacewalk Thoughts, Drift Cloud, Focus Flow | Same five, same order |
+| Deep Intense Rock | Storm Runner, Gym Hero, Crimson Highway, Pulse Machine, Sunrise City | Same five, same order |
+| Conflicted (sad but loud) | Empty Porch Light, Broken Signal, Dandelion Fields, Storm Runner, Crimson Highway | **Broken Signal** first, Empty Porch Light second, then Storm Runner, Crimson Highway, Gym Hero (loud rock songs pushed up) |
+| Mellow Rock | Library Rain, Midnight Coding, ... | Midnight Coding and Library Rain swap; no rock song either way |
+
+Result: **different, not clearly more accurate.** Rankings barely moved for users whose genre, mood and energy all agree. They changed mostly for the conflicted user, where the quiet folk song lost its first place because its energy (0.30) is far from 0.90. That feels slightly more faithful to the "loud" half of the request but gives up the "sad folk" half, so neither ordering is clearly right.
+
+### Experiment 2: remove the mood check
+
+Mood weight set to 0.
+
+| Profile | What changed |
+|---|---|
+| Happy Pop | **Gym Hero jumps from 3rd to 2nd**; Rooftop Lights (indie pop, happy) falls out of the top 5 and Crimson Highway, an angry rock song, appears. |
+| Chill Lofi | Ambient songs drop out; Focus Flow and Coffee Shop Stories (jazz, relaxed) move up. |
+| Deep Intense Rock | Crimson Highway (angry rock) rises from 3rd to 2nd above Gym Hero, which is arguably better for a rock fan. |
+| Conflicted | A happy folk song (Dandelion Fields) takes first place for a user who asked for sad. |
+
+Result: mood is doing real work. Without it, the system keeps the genre and energy matches but loses the "feel" of the request, so a user who wanted happy music gets an angry rock song. Keep it. The one case where removing mood looked better (intense rock) points to a different problem: `angry` and `intense` should earn partial credit instead of being treated as total opposites.
 
 ---
 
