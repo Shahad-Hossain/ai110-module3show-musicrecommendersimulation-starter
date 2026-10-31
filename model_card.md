@@ -1,141 +1,134 @@
 # 🎧 Model Card: Music Recommender Simulation
 
-## 1. Model Name  
+## 1. Model Name
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
-
----
-
-## 2. Intended Use  
-
-Describe what your recommender is designed to do and who it is for. 
-
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+**VibeMatch 1.0**
 
 ---
 
-## 3. How the Model Works  
+## 2. Goal / Task
 
-Explain your scoring approach in simple language.  
+VibeMatch suggests songs from a small catalog that fit one user's taste.
 
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+It tries to predict which songs a user would like best. It compares each song to the user's favorite genre, favorite mood, target energy, and whether they like acoustic music. Then it shows the top 5 songs with reasons.
 
 ---
 
-## 4. Data  
+## 3. Data Used
 
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+- The catalog is `data/songs.csv`. It has **20 songs**.
+- Each song has 10 columns: id, title, artist, genre, mood, energy, tempo, valence, danceability, and acousticness.
+- There are **10 genres** (pop, lofi, rock, ambient, jazz, synthwave, indie pop, folk, edm, hip hop) and **12 moods**.
+- I started with 10 songs and added 10 more. I added them to fill gaps: no sad songs, no mid-energy songs, and no songs that were both acoustic and upbeat.
+- The songs and artists are **made up**. They are not real data.
+- Limits: the catalog is tiny. `chill` shows up 4 times, but most moods show up once. There are no lyrics, no language, and no song popularity.
 
 ---
 
-## 5. Strengths  
+## 4. Algorithm Summary
 
-Where does your system seem to work well  
+Each song gets points out of 5. The song with the most points wins.
 
-Prompts:  
+- **Energy (up to 2.0 points):** the closer the song's energy is to the user's target, the more points. A song that is too loud or too quiet both lose points.
+- **Mood (1.5 points):** the song gets the points if its mood matches the user's favorite mood. Otherwise, zero.
+- **Genre (1.0 point):** the song gets the point if its genre matches. Otherwise, zero.
+- **Acoustic fit (up to 0.5 points):** if the user likes acoustic songs, more acoustic songs get more points. If not, less acoustic songs get more points.
 
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+After every song has a score, the system sorts them from highest to lowest and returns the top 5. It also lists the reasons, like "mood match (+1.5)".
 
----
-
-## 6. Limitations and Bias 
-
-**Main weakness: matching labels can outvote what the listener actually asked to hear.** A user who wants sad music but very high energy (energy 0.9) was handed "Empty Porch Light", a quiet folk song with energy 0.30, as the number one pick. It collects 2.5 points just for matching the genre and mood labels, while being 0.6 away from the energy target only costs it 1.2 of its 2.0 energy points, so the labels win. The loud songs that really matched the energy request (Storm Runner, Crimson Highway) were pushed to 4th and 5th place. The system treats genre and mood as all-or-nothing stickers, so one sticker match can hide a large mismatch in how the song actually sounds.
-
-Other weaknesses I found:
-
-- **Vocabulary mismatches fail silently.** A profile asking for mood "sad" matched nothing, because the catalog calls that mood "melancholy". The profile was then ranked on energy and acousticness alone, with no warning to the user.
-- **No partial credit for close moods or genres.** `angry` rock earns nothing for an "intense rock" fan, `indie pop` earns nothing for a pop fan, and `pop/intense` Gym Hero still gets recommended to happy-pop fans.
-- **Chill is a bubble.** Four of the 20 songs are "chill" (lofi and ambient). Chill-lofi users get all-chill top 4 lists, and a rock fan who wanted quiet songs (mellow rock) got no rock song at all, because energy and acousticness outweigh the one genre point.
-- **Mood vocabulary is lopsided.** `chill` appears 4 times and `happy` 3 times, while most of the other 12 moods appear once, so people with rarer tastes get fewer good candidates.
-- **The catalog is tiny and invented.** 20 songs means the same few songs (Gym Hero, Sunrise City) turn up for many different profiles. Pop is only 3 of the 20 songs (15%), so this is not mainly a pop bias; it is a small-catalog and label-matching problem.
+Tempo, danceability, and valence are in the data, but I do not score them. They mostly repeat what energy already says.
 
 ---
 
-## 7. Evaluation  
+## 5. Observed Behavior / Biases
 
-**Profiles tested** (all outputs are pasted in the README under "Stress Test: Diverse Profiles"):
+**Main problem: matching labels can beat what the user actually wants.**
 
-| Profile | Type | What it asks for |
-|---|---|---|
-| Happy Pop | normal | pop, happy, energy 0.8 |
-| Chill Lofi | normal | lofi, chill, energy 0.38, likes acoustic |
-| Deep Intense Rock | normal | rock, intense, energy 0.92 |
-| Conflicted | adversarial | folk, melancholy, energy **0.9**, likes acoustic (sad but loud) |
-| Mellow Rock | adversarial | rock fan who wants chill songs at energy 0.40 |
-| Unknown tastes | adversarial | genre "classical", mood "sad" (neither is in the catalog) |
+One test user wanted sad music at very high energy (0.9). The system gave a quiet folk song (energy 0.30) as the top pick. That song matched the genre and mood labels, so it got 2.5 points. Being far from the energy target only cost it 1.2 points. The loud songs that matched the energy were pushed down to 4th and 5th.
 
-**What I looked for:** whether the top song felt right, whether different profiles got different lists, and whether the "because" reasons explained the order.
+Other things I found:
 
-**What matched intuition:** the three normal profiles each put the song I would pick on top (Sunrise City, Library Rain, Storm Runner), and their lists do not overlap much.
+- **Gym Hero shows up a lot.** It is an intense pop workout song. It lands in the top 5 for happy-pop fans and for rock fans. It is close to many people's numbers, even when the mood is wrong.
+- **Wrong words fail silently.** A user who asked for mood "sad" matched nothing, because the catalog says "melancholy". The system did not warn them.
+- **No partial credit.** "Angry" rock gets nothing for an "intense rock" fan. "Indie pop" gets nothing for a pop fan.
+- **Chill is a bubble.** A rock fan who wanted quiet, chill songs got zero rock songs.
+- **Small catalog.** The same few songs show up for many users. Pop is only 15% of the songs, so this is not a pop bias. It is a small-catalog and label-matching problem.
 
-**What surprised me:**
-- **Why does Gym Hero keep showing up for people who just want happy pop?** In plain terms: the system adds up points. Gym Hero is a pop song (+1.0) and its energy (0.93) is close to what a pop fan wants (about +1.7), so it already has nearly 3 points before mood is even checked. It is an "intense" workout song, not a "happy" one, so it misses the 1.5 mood points. But the catalog only has three pop songs, so the system runs out of better candidates quickly and Gym Hero slides into 3rd place. It also shows up second for the rock fan, because it matches "intense" and has almost the same energy as the rock song. It is simply a song that is close to a lot of people's numbers, even though it does not fit their mood.
-- **The conflicted user got a quiet song first** (see Limitations).
-- **The "unknown tastes" profile still got confident-looking results**, even though two of its four preferences matched nothing.
+---
 
-**Why Sunrise City ranks first for Happy Pop:** genre match +1.0, mood match +1.5, energy 0.82 vs 0.80 gives +1.96, and acoustic fit +0.41, for 4.87 out of 5. The runner-up, Rooftop Lights, loses the 1.0 genre point (it is "indie pop") and ends with 3.75.
+## 6. Evaluation Process
 
-**Comparing pairs of profiles** (why the lists differ, and whether that makes sense):
+I tested six user profiles. The full outputs are in the README.
+
+| Profile | Type |
+|---|---|
+| Happy Pop (pop, happy, energy 0.8) | normal |
+| Chill Lofi (lofi, chill, energy 0.38, likes acoustic) | normal |
+| Deep Intense Rock (rock, intense, energy 0.92) | normal |
+| Conflicted (folk, melancholy, energy 0.9) | tricky |
+| Mellow Rock (rock fan who wants chill, energy 0.4) | tricky |
+| Unknown tastes (genre "classical", mood "sad") | tricky |
+
+**What I checked:** Did the top song feel right? Did different users get different lists? Did the reasons explain the order?
+
+**What matched my intuition:** the three normal users each got the song I would have picked first: Sunrise City, Library Rain, and Storm Runner.
+
+**What surprised me:** the tricky users. The "sad but loud" user got a quiet song first. The "unknown tastes" user still got confident-looking results, even though two of their four preferences matched nothing.
+
+**Why Gym Hero keeps showing up for people who just want happy pop:** the system adds up points. Gym Hero is a pop song (+1.0), and its energy is close to what a pop fan wants (about +1.7). That is nearly 3 points before mood is even checked. It is an "intense" song, not a "happy" one, so it misses the 1.5 mood points. But the catalog only has three pop songs, so there are not many better options, and it lands 3rd.
+
+**Why Sunrise City wins for Happy Pop:** it matches the genre (+1.0) and the mood (+1.5). Its energy is very close (+1.96). Its acoustic fit adds +0.41. That is 4.87 out of 5.
+
+**Comparing pairs of profiles:**
 
 | Pair | What changed | Does it make sense? |
 |---|---|---|
-| Happy Pop vs Chill Lofi | Pop/happy songs near energy 0.8 (Sunrise City) are replaced by lofi and ambient songs near energy 0.35 (Library Rain). | Yes. These are opposite moods and opposite energy levels, and the lists share no songs. |
-| Happy Pop vs Deep Intense Rock | Both want high energy, so Gym Hero appears in both. Pop songs are replaced by Storm Runner and Crimson Highway. | Yes. The overlap is the high-energy part; the genre and mood decide the rest. |
-| Chill Lofi vs Deep Intense Rock | No song in common. Quiet, acoustic songs versus loud, non-acoustic ones. | Yes. This is the clearest test of the profile: every preference points the opposite way. |
-| Deep Intense Rock vs Mellow Rock | Same genre, but the rock songs disappear entirely when the user wants energy 0.40 and chill. | Partly. It shows energy and mood matter more than genre, which is defensible, but a rock fan getting zero rock is surprising. |
-| Chill Lofi vs Mellow Rock | Nearly identical lists. | Expected, since both want low-energy, chill, acoustic songs. It shows the "rock" label barely counted. |
-| Deep Intense Rock vs Conflicted | Both want energy about 0.9, but Conflicted starts with quiet folk and only reaches the loud rock songs at 4th and 5th. | Not fully. It shows the label-over-energy problem. |
-| Chill Lofi vs Unknown tastes | Chill Lofi gets confident matches; Unknown gets mid-energy songs across five genres with low scores (about 2.0 of 5). | Yes. The low scores correctly signal weak matches, but nothing tells the user that their genre was not found. |
+| Happy Pop vs Chill Lofi | Loud pop songs are replaced by quiet lofi and ambient songs. No songs in common. | Yes. Opposite mood and opposite energy. |
+| Happy Pop vs Deep Intense Rock | Both want high energy, so Gym Hero shows up in both. The rest changes with genre and mood. | Yes. The overlap is the high-energy part. |
+| Chill Lofi vs Deep Intense Rock | No songs in common. Quiet and acoustic versus loud and electric. | Yes. Every preference points the other way. |
+| Deep Intense Rock vs Mellow Rock | Same genre, but the rock songs disappear when the user wants quiet, chill songs. | Partly. Energy and mood beat genre, but a rock fan getting zero rock is surprising. |
+| Chill Lofi vs Mellow Rock | Almost the same list. | Yes, both want quiet, chill, acoustic songs. The "rock" label barely counted. |
+| Deep Intense Rock vs Conflicted | Both want energy about 0.9, but Conflicted gets quiet folk first and loud rock only at 4th and 5th. | Not really. It shows labels beating energy. |
+| Chill Lofi vs Unknown tastes | Chill Lofi gets strong matches. Unknown gets mid-energy songs with low scores (about 2 out of 5). | Yes. Low scores signal weak matches, but the user is never told their genre was not found. |
 
-The remaining pairs follow the same pattern: the more preferences two profiles share, the more songs their lists share.
+The other pairs follow the same pattern: the more preferences two users share, the more songs their lists share.
 
-**Experiments** (details in the README):
-- **Weight shift (energy x2, genre x0.5):** rankings barely moved for normal users and changed mainly for the conflicted user. Different, not clearly more accurate.
-- **Mood check removed:** happy-pop users got an angry rock song and the intense-pop Gym Hero moved up. Mood clearly matters, so I kept it.
+**Experiments:**
 
----
-
-## 8. Future Work  
-
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+- **Double energy, halve genre:** normal users barely changed. Only the "sad but loud" user got a different top song. It was different, but not clearly better.
+- **Remove the mood check:** happy-pop users got an angry rock song, and Gym Hero moved up. Mood matters, so I kept it.
 
 ---
 
-## 9. Personal Reflection  
+## 7. Intended Use and Non-Intended Use
 
-A few sentences about your experience.  
+**Intended use:**
 
-Prompts:  
+- A classroom project to learn how recommenders turn data into a ranked list.
+- Trying out scoring rules on a small catalog and seeing why a song ranks where it does.
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+**Not intended for:**
+
+- A real music app or real users. The catalog is too small and made up.
+- Judging anyone's taste. One genre, one mood, and one energy number cannot describe a person.
+- Anything where a wrong answer matters. It has no fairness checks and cannot learn from feedback.
+
+---
+
+## 8. Ideas for Improvement
+
+1. **Give partial credit.** Treat close moods and genres as partly matching, like "angry" and "intense", or "indie pop" and "pop". Warn the user when their genre or mood is not in the catalog.
+2. **Let users pick more than one taste.** Allow a list of favorite genres and moods. Add valence so "sad" and "happy" can be told apart by number.
+3. **Add variety and more songs.** Avoid a top 5 that all sound alike. Grow the catalog so one song like Gym Hero cannot show up everywhere.
+
+---
+
+## 9. Personal Reflection
+
+**Biggest learning moment.** I thought the hard part would be the math. It was actually the weights. I tried the common starting point of giving genre 2.0 and mood 1.0. A rock fan who wanted chill songs got loud rock songs first. That showed me one number can quietly decide who gets what.
+
+**How AI helped, and when I double-checked it.** AI was great for getting started fast. It helped me find gaps in my songs, draft the scoring rule, and write the code. But I did not just trust it. I ran the recommender on test profiles and read the results myself. I also found a bug where `python -m src.main` did not work because of an import. I would not have caught that without running it.
+
+**What surprised me.** A few simple rules felt like a real recommendation. Seeing "mood match (+1.5)" next to a song made it feel smart, even though it is only adding points. It also showed me how a system can look confident when it is wrong, like when it gave results for a mood that was not in the catalog.
+
+**What I would try next.** I would add partial credit for similar moods and genres, let users pick more than one favorite, and add many more songs. I would also try the "people like you" idea from apps like Spotify, so the system is not only comparing song labels.
