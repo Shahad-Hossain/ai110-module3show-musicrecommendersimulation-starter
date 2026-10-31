@@ -11,7 +11,7 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+**VibeMatch 1.0** is a small command-line recommender. It loads 20 made-up songs from `data/songs.csv`, compares each song to a user's taste profile (favorite genre, favorite mood, target energy, and whether they like acoustic music), and gives every song a score out of 5. It then ranks the songs and prints the top 5, with a reason for every point awarded. I tested it on six profiles, ran two experiments that change the weights, and wrote down where it works and where it fails in the [Model Card](model_card.md).
 
 ---
 
@@ -19,7 +19,13 @@ Replace this paragraph with your own summary of what your version does.
 
 ### How real-world recommenders work
 
-Platforms like Spotify and YouTube blend two ideas. **Collaborative filtering** looks at behavior (plays, skips, saves, playlist adds) and recommends what similar listeners enjoyed, so it needs no knowledge of the song itself. **Content-based filtering** looks at song attributes (genre, mood, tempo, audio features) and recommends songs that resemble what you already like. Collaborative filtering finds surprising picks but struggles with brand-new songs; content-based handles new songs well but can trap you in a bubble of near-duplicates.
+Every recommender has three parts, and it helps to keep them separate:
+
+1. **Input data.** What the system knows. For songs, that is features like genre, mood, tempo, energy and acousticness. For users, it is their history: plays, skips, saves, likes and playlist adds, plus context like time of day.
+2. **User preferences.** What the system believes this person wants. Real platforms learn it from history (for example, "this user skips slow songs and replays upbeat pop"). In my version, I write it down by hand as a taste profile.
+3. **Ranking and selection.** The system scores every candidate song against the preferences, sorts by score, and shows only the top few. Platforms like Spotify and YouTube do this in two steps: first they narrow millions of items to a few hundred candidates, then a heavier model ranks those.
+
+Platforms blend two main ideas. **Collaborative filtering** uses other users' behavior and recommends what similar listeners enjoyed, so it needs no knowledge of the song itself. **Content-based filtering** uses song attributes and recommends songs that resemble what you already like. Collaborative filtering finds surprising picks but struggles with brand-new songs (the "cold start" problem); content-based handles new songs well but can trap you in a bubble of near-duplicates. Modern systems also learn from implicit feedback (a skip in the first 30 seconds is a strong "no") and try to optimize for satisfaction, such as watch time, instead of just clicks.
 
 My version is purely **content-based**: with 10 songs and one user at a time there is no crowd to learn from. It prioritizes **how close a song's energy is to what the user wants**, then **mood**, then **genre**. Mood and energy capture how a song *feels*, while genre is a coarse label that, in this catalog, matches only one to three songs.
 
@@ -150,7 +156,15 @@ Top recommendations:
    - acoustic fit (+0.08)
 ```
 
-Sunrise City wins because it matches on genre, mood and energy. Gym Hero (an intense workout song) still lands third on genre and energy alone, which is the genre-pull bias noted above.
+### Why these songs were recommended
+
+Each explanation below comes straight from the score breakdown above.
+
+- **Sunrise City (4.87 / 5), Happy Pop:** it is a pop song (+1.0 genre), its mood is happy (+1.5 mood), its energy of 0.82 is almost exactly the 0.80 target (+1.96 energy), and it is not very acoustic (+0.41). It matches on everything, so it wins.
+- **Rooftop Lights (3.75 / 5), Happy Pop:** it is happy (+1.5) and has energy 0.76, close to the target (+1.92). It gets no genre points because it is "indie pop", not "pop". That one missing point is why it is second.
+- **Gym Hero (3.22 / 5), Happy Pop:** it is a pop song (+1.0) with energy 0.93 (+1.74), but its mood is "intense", not "happy", so it earns no mood points. It ranks third only because there are few better options.
+- **Storm Runner (4.93 / 5), Deep Intense Rock:** rock genre (+1.0), intense mood (+1.5), energy 0.91 against a 0.92 target (+1.98), and low acousticness (+0.45). It is a near-perfect match.
+- **Library Rain (4.87 / 5), Chill Lofi:** lofi genre (+1.0), chill mood (+1.5), energy 0.35 against 0.38 (+1.94), and it is very acoustic, which this user likes (+0.43).
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
 
@@ -377,6 +391,15 @@ Top recommendations:
    - acoustic fit (+0.38)
 ```
 
+### What the outputs show
+
+- **Happy Pop vs Chill Lofi:** the pop profile gets loud, upbeat songs (energy around 0.8), and the lofi profile shifts to quiet, acoustic ones (energy around 0.35). The two lists share no songs, which is what opposite tastes should produce.
+- **Happy Pop vs Deep Intense Rock:** both want high energy, so Gym Hero appears in both lists. Genre and mood then pull the lists apart: Sunrise City for pop, Storm Runner and Crimson Highway for rock.
+- **Chill Lofi vs Deep Intense Rock:** no songs in common. Every preference points the other way: quiet vs loud, acoustic vs electric.
+- **Deep Intense Rock vs Mellow Rock:** same favorite genre, but the mellow rock fan gets no rock songs at all. Energy, mood and acoustic fit together outweigh the single genre point.
+- **Conflicted (sad but loud):** the quiet folk song wins because it matches the labels, and the loud songs that fit the energy request only show up at 4th and 5th.
+- **Unknown tastes:** none of the genre or mood labels match anything, so the system falls back on energy and acousticness. The scores are low (about 2 out of 5), which correctly signals a weak match, but the system never tells the user.
+
 ---
 
 ## Experiments You Tried
@@ -414,28 +437,23 @@ Result: mood is doing real work. Without it, the system keeps the genre and ener
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+- **Labels can beat what the user actually wants.** A user who wanted sad music at very high energy got a quiet folk song first, because matching genre and mood is worth 2.5 points and the energy gap only cost 1.2.
+- **Tiny, made-up catalog.** With 20 songs, the same few (like Gym Hero) show up for many users.
+- **No partial credit and silent failures.** "Angry" rock earns nothing for an "intense rock" fan, and a mood that is not in the catalog (like "sad") is ignored without a warning.
+- **One favorite per category.** A user can have one genre and one mood, and the system cannot learn from behavior.
+- **It does not understand lyrics, language, or popularity.**
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+More detail is in the [Model Card](model_card.md).
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
+Full model card: [**Model Card**](model_card.md)
 
-[**Model Card**](model_card.md)
+**What I learned about how recommenders turn data into predictions.** A recommender is just three steps: describe the songs with numbers and labels, describe the user the same way, and score how close the two are. My scoring rule is only a few additions, but seeing "mood match (+1.5)" next to a song made it feel like a real recommendation. The weights ended up mattering more than the math. When I tried the common "genre 2.0, mood 1.0" starting point, a rock fan who wanted quiet songs got loud rock first. Changing one number changed who got what.
 
-Write 1 to 2 paragraphs here about what you learned:
-
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+**Where bias or unfairness could show up.** The system treats genre and mood as all-or-nothing labels, so it favors users whose tastes match the catalog's labels and quietly fails for everyone else. A user who asked for "sad" got results anyway, even though nothing in the catalog is called "sad". In a real app, the same problem could appear as popular songs getting more exposure because they have more data, or niche listeners getting worse suggestions because fewer songs fit them.
 
 
 

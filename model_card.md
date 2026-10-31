@@ -79,6 +79,12 @@ I tested six user profiles. The full outputs are in the README.
 
 **Why Sunrise City wins for Happy Pop:** it matches the genre (+1.0) and the mood (+1.5). Its energy is very close (+1.96). Its acoustic fit adds +0.41. That is 4.87 out of 5.
 
+**More explanations of why songs were recommended** (taken from the score breakdowns in the README):
+
+- **Rooftop Lights (3.75) for Happy Pop:** it is happy (+1.5) and its energy is close to the target (+1.92). It gets no genre points because it is "indie pop", not "pop".
+- **Storm Runner (4.93) for Deep Intense Rock:** rock (+1.0), intense (+1.5), energy 0.91 against a 0.92 target (+1.98), and not acoustic (+0.45). It matches almost perfectly.
+- **Library Rain (4.87) for Chill Lofi:** lofi (+1.0), chill (+1.5), energy 0.35 against 0.38 (+1.94), and very acoustic, which this user likes (+0.43).
+
 **Comparing pairs of profiles:**
 
 | Pair | What changed | Does it make sense? |
